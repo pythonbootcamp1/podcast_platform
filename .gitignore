@@ -5,7 +5,21 @@ __pycache__/
 
 # C extensions
 *.so
+# .gitignore 파일 열어서 추가
+# 미디어 파일
+*.mp3
+*.m4a
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+*.wav
 
+# 또는 특정 디렉토리만
+media/
+uploads/
 # Distribution / packaging
 .Python
 build/
