@@ -1,10 +1,10 @@
 # podcasts/views.py
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Creator, Channel, Episode
+from .models import User, Channel, Episode
 from .serializers import (
-    CreatorSerializer,
+    UserSerializer,
     ChannelSerializer,
     EpisodeSerializer,
     ChannelListSerializer,
@@ -16,22 +16,109 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from ranged_response import RangedFileResponse
 from analysis.models import PlayLog
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import action
+from .serializers import RegisterSerializer
 
-class CreatorViewSet(viewsets.ModelViewSet):
+class AuthViewSet(viewsets.GenericViewSet):
+    """
+    인증 관련 ViewSet
+
+    GenericViewSet: 기본 CRUD 없이 커스텀 액션만 사용
+    """
+    serializer_class = RegisterSerializer
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def register(self, request):
+        """
+        회원가입
+
+        URL: POST /api/auth/register/
+
+        요청:
+        {
+            "username": "john",
+            "email": "john@example.com",
+            "password": "secret123",
+            "password_confirm": "secret123",
+            "first_name": "John",
+            "last_name": "Doe"
+        }
+
+        응답:
+        {
+            "user": {
+                "id": 1,
+                "username": "john",
+                "email": "john@example.com"
+            },
+            "tokens": {
+                "access": "eyJhbGciOi...",
+                "refresh": "eyJzdWIiOi..."
+            }
+        }
+        """
+        # 1. 요청 데이터 검증
+        serializer = RegisterSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 2. 사용자 생성
+        user = serializer.save()
+
+        # 3. JWT 토큰 생성
+        # 회원가입 후 자동 로그인 처리
+        refresh = RefreshToken.for_user(user)
+
+        # 4. 응답 반환
+        return Response({
+            'user': UserSerializer(user).data,
+            'tokens': {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }
+        }, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """
+        현재 로그인한 사용자 정보 조회
+
+        URL: GET /api/auth/me/
+        Headers: Authorization: Bearer <access_token>
+
+        응답:
+        {
+            "id": 1,
+            "username": "john",
+            "email": "john@example.com",
+            "first_name": "John",
+            "last_name": "Doe",
+            "date_joined": "2025-10-12T10:30:00Z"
+        }
+        """
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+class UserViewSet(viewsets.ModelViewSet):
     """크리에이터 ViewSet"""
-    queryset = Creator.objects.all()
-    serializer_class = CreatorSerializer
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['name', 'bio', 'email']
-    ordering_fields = ['created_at', 'name']
-    ordering = ['-created_at']
+    search_fields = ['username', 'email']
+    ordering_fields = ['date_joined', 'username']
+    ordering = ['-date_joined']
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
     """채널 ViewSet (최적화 버전)"""
     # queryset = Channel.objects.all()  # queryset 추가
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['creator', 'category', 'is_active']
+    filterset_fields = ['user', 'category', 'is_active']
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'title']
     ordering = ['-created_at']
@@ -48,7 +135,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
             queryset = queryset.prefetch_related('episodes')
         
         # FK 관계 최적화
-        return queryset.select_related('creator')
+        return queryset.select_related('user')
     
     def get_serializer_class(self):
         """액션에 따른 시리얼라이저 분기"""

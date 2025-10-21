@@ -1,10 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CreatorViewSet, ChannelViewSet, EpisodeViewSet, stream_audio
+from .views import UserViewSet, ChannelViewSet, EpisodeViewSet, stream_audio, AuthViewSet
 router = DefaultRouter()
-router.register(r'creators', CreatorViewSet,basename='creator')
+router.register(r'users', UserViewSet,basename='user')
 router.register(r'channels', ChannelViewSet,basename='channel')
 router.register(r'episodes', EpisodeViewSet,basename='episode')
+router.register(r'auth', AuthViewSet,basename='auth')
 urlpatterns = [
     path('', include(router.urls)),
     path('episodes/<int:pk>/stream/', stream_audio, name='stream_audio'),

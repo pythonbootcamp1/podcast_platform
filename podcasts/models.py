@@ -1,18 +1,19 @@
 # podcasts/models.py
 from django.db import models
 from .validators import validate_image_file_extension, validate_image_file_size, validate_audio_file_extension, validate_audio_file_size
-class Creator(models.Model):
-    """크리에이터 모델 (YouTube 채널 운영자와 같은 개념)"""
-    name = models.CharField(max_length=100)
-    bio = models.TextField(blank=True)
-    email = models.EmailField(unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+# class Creator(models.Model):
+#     """크리에이터 모델 (YouTube 채널 운영자와 같은 개념)"""
+#     name = models.CharField(max_length=100)
+#     bio = models.TextField(blank=True)
+#     email = models.EmailField(unique=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
 
-    class Meta:
-        ordering = ['-created_at']
+#     class Meta:
+#         ordering = ['-created_at']
+from django.contrib.auth.models import User
 
 class Channel(models.Model):
     """채널 모델 (YouTube 채널과 같은 개념)"""
@@ -24,8 +25,8 @@ class Channel(models.Model):
         ('news', '뉴스'),
     ]
     
-    creator = models.ForeignKey(
-        Creator,
+    user = models.ForeignKey(
+        User,
         on_delete=models.CASCADE,
         related_name='channels'  # ⭐ creator.channels로 역참조 가능!
     )

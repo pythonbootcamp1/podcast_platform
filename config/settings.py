@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+from datetime import timedelta  # ← JWT 토큰 수명 설정을 위해 필수 1
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'drf_spectacular',
+    'rest_framework_simplejwt.token_blacklist',  # ← 로그아웃 기능을 위해 필수 2
     'podcasts',
     'analysis',
 ]
@@ -74,8 +75,10 @@ TEMPLATES = [
 ]
 # REST Framework 설정 추가 (파일 맨 아래)
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+     # 기본 인증 방식 설정 3
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # JWT 인증을 기본으로 사용
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -89,6 +92,50 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
+}
+# JWT 설정 4
+SIMPLE_JWT = {
+    # Access Token 수명
+    # 짧게 설정하여 보안 강화 (탈취되어도 금방 만료)
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    # 실무 권장: 15분~1시간
+    # MVP 단계: 1시간 (개발 편의)
+
+    # Refresh Token 수명
+    # 길게 설정하여 사용자 편의 향상
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    # 실무 권장: 7일~30일
+
+    # Token 자동 갱신 여부
+    # True: Refresh 시 Refresh Token도 새로 발급
+    # False: Refresh Token은 그대로 유지
+    'ROTATE_REFRESH_TOKENS': True,
+    # 권장: True (보안 강화)
+
+    # 이전 Refresh Token 무효화 여부
+    # ROTATE_REFRESH_TOKENS=True일 때만 의미 있음
+    'BLACKLIST_AFTER_ROTATION': True,
+    # 권장: True (이전 토큰 재사용 방지)
+
+    # 서명 알고리즘
+    'ALGORITHM': 'HS256',
+    # HS256: 대칭키 암호화 (서버만 복호화 가능)
+    # RS256: 비대칭키 (공개키로 검증 가능) - MSA 환경에 유리
+
+    # 서명 키 (Django SECRET_KEY 사용)
+    'SIGNING_KEY': SECRET_KEY,
+    # 프로덕션: 별도의 JWT_SECRET_KEY 사용 권장
+
+    # Payload에 포함할 사용자 식별 필드
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    # Token 헤더 이름
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    # 요청 시: Authorization: Bearer <token>
+
+    # Token 헤더 이름
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
 }
 
 # Database
@@ -124,9 +171,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -152,5 +199,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # 2:20까지 진행하고 다음 내용으로 넘어가겠습니다!
 
 # CORS 설정
-
-
