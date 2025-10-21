@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>오디오 스트리밍 v2</title>
+</head>
+<body>
+    <h1>🎵 오디오 스트리밍 테스트 v2</h1>
+    
+    <div style="margin: 20px; padding: 20px; border: 2px solid green;">
+        <h2>✅ Stream View 사용 (Range 지원)</h2>
+        <audio controls>
+            <!-- 이제 /stream/ 엔드포인트 사용 -->
+            <source src="http://localhost:8000/api/episodes/3/stream/" type="audio/mpeg">
+        </audio>
+        <p><strong>테스트:</strong> 타임라인 바를 클릭해서 중간 지점으로 이동해보세요!</p>
+    </div>
+    
+    <div style="margin: 20px; padding: 20px; border: 2px solid red;">
+        <h2>❌ 직접 Media URL (비교용)</h2>
+        <audio controls>
+            <source src="http://localhost:8000/media/episodes/Whispers_of_Tomorrow.mp3" type="audio/mpeg">
+        </audio>
+        <p><strong>비교:</strong> 이건 seek이 느리거나 안 됩니다</p>
+    </div>
+</body>
+</html>

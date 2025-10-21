@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CreatorViewSet, ChannelViewSet, EpisodeViewSet
+from .views import CreatorViewSet, ChannelViewSet, EpisodeViewSet, stream_audio
 router = DefaultRouter()
 router.register(r'creators', CreatorViewSet,basename='creator')
 router.register(r'channels', ChannelViewSet,basename='channel')
 router.register(r'episodes', EpisodeViewSet,basename='episode')
 urlpatterns = [
     path('', include(router.urls)),
+    path('episodes/<int:pk>/stream/', stream_audio, name='stream_audio'),
 ]
 
 # serializer 추가

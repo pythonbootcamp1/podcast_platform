@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-height: 500px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .item-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .item-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .item-card p {
+            color: #555;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .item-card .meta {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .add-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .add-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #555;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+
+        .badge-category {
+            background: #667eea;
+            color: white;
+        }
+
+        .episode-audio {
+            margin-top: 10px;
+        }
+
+        .episode-audio audio {
+            width: 100%;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ Podcast Platform</h1>
+            <p class="subtitle">채널, 크리에이터, 에피소드 관리</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('channels')">채널</button>
+            <button class="tab" onclick="switchTab('creators')">크리에이터</button>
+            <button class="tab" onclick="switchTab('episodes')">에피소드</button>
+        </div>
+
+        <div class="content">
+            <!-- Channels Tab -->
+            <div id="channels-tab" class="tab-content active">
+                <h2>채널 목록</h2>
+                <div id="channels-list" class="items-grid">
+                    <div class="loading">채널 로딩 중...</div>
+                </div>
+            </div>
+
+            <!-- Creators Tab -->
+            <div id="creators-tab" class="tab-content">
+                <h2>크리에이터 목록</h2>
+                <div id="creators-list" class="items-grid">
+                    <div class="loading">크리에이터 로딩 중...</div>
+                </div>
+            </div>
+
+            <!-- Episodes Tab -->
+            <div id="episodes-tab" class="tab-content">
+                <h2>에피소드 목록</h2>
+                <div id="episodes-list" class="items-grid">
+                    <div class="loading">에피소드 로딩 중...</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="add-button" onclick="openAddModal()" title="추가">+</button>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">항목 추가</h2>
+            <form id="item-form">
+                <div id="form-fields"></div>
+                <div class="button-group">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/api';
+        let currentTab = 'channels';
+        let channels = [];
+        let creators = [];
+        let episodes = [];
+
+        // Tab switching
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Load data if not loaded
+            loadData();
+        }
+
+        // Load all data
+        async function loadData() {
+            switch(currentTab) {
+                case 'channels':
+                    await loadChannels();
+                    break;
+                case 'creators':
+                    await loadCreators();
+                    break;
+                case 'episodes':
+                    await loadEpisodes();
+                    break;
+            }
+        }
+
+        // Load channels
+        async function loadChannels() {
+            try {
+                const response = await fetch(`${API_BASE}/channels/`);
+                const data = await response.json();
+                channels = data.results || data;
+                renderChannels();
+            } catch (error) {
+                document.getElementById('channels-list').innerHTML =
+                    `<div class="error">채널을 불러오는데 실패했습니다: ${error.message}</div>`;
+            }
+        }
+
+        // Render channels
+        function renderChannels() {
+            const container = document.getElementById('channels-list');
+
+            if (channels.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>등록된 채널이 없습니다</h3>
+                        <p>+ 버튼을 클릭하여 새 채널을 추가하세요</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = channels.map(channel => `
+                <div class="item-card" onclick="viewChannelDetail(${channel.id})">
+                    <h3>${channel.name}</h3>
+                    <p>${channel.description || '설명 없음'}</p>
+                    ${channel.category ? `<span class="badge badge-category">${channel.category}</span>` : ''}
+                    <div class="meta">
+                        크리에이터: ${channel.creator_name || 'N/A'}<br>
+                        생성일: ${new Date(channel.created_at).toLocaleDateString('ko-KR')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load creators
+        async function loadCreators() {
+            try {
+                const response = await fetch(`${API_BASE}/creators/`);
+                const data = await response.json();
+                creators = data.results || data;
+                renderCreators();
+            } catch (error) {
+                document.getElementById('creators-list').innerHTML =
+                    `<div class="error">크리에이터를 불러오는데 실패했습니다: ${error.message}</div>`;
+            }
+        }
+
+        // Render creators
+        function renderCreators() {
+            const container = document.getElementById('creators-list');
+
+            if (creators.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>등록된 크리에이터가 없습니다</h3>
+                        <p>+ 버튼을 클릭하여 새 크리에이터를 추가하세요</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = creators.map(creator => `
+                <div class="item-card" onclick="viewCreatorDetail(${creator.id})">
+                    <h3>${creator.name}</h3>
+                    <p>${creator.bio || '소개 없음'}</p>
+                    ${creator.email ? `<p>📧 ${creator.email}</p>` : ''}
+                    ${creator.website ? `<p>🌐 <a href="${creator.website}" target="_blank">웹사이트</a></p>` : ''}
+                    <div class="meta">
+                        채널 수: ${creator.channels_count || 0}<br>
+                        생성일: ${new Date(creator.created_at).toLocaleDateString('ko-KR')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load episodes
+        async function loadEpisodes() {
+            try {
+                const response = await fetch(`${API_BASE}/episodes/`);
+                const data = await response.json();
+                episodes = data.results || data;
+                renderEpisodes();
+            } catch (error) {
+                document.getElementById('episodes-list').innerHTML =
+                    `<div class="error">에피소드를 불러오는데 실패했습니다: ${error.message}</div>`;
+            }
+        }
+
+        // Render episodes
+        function renderEpisodes() {
+            const container = document.getElementById('episodes-list');
+
+            if (episodes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>등록된 에피소드가 없습니다</h3>
+                        <p>+ 버튼을 클릭하여 새 에피소드를 추가하세요</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = episodes.map(episode => `
+                <div class="item-card" onclick="viewEpisodeDetail(${episode.id})">
+                    <h3>${episode.title}</h3>
+                    <p>${episode.description || '설명 없음'}</p>
+                    <p><strong>채널:</strong> ${episode.channel_name || 'N/A'}</p>
+                    ${episode.duration ? `<p>⏱️ ${formatDuration(episode.duration)}</p>` : ''}
+                    ${episode.audio_file ? `
+                        <div class="episode-audio">
+                            <audio controls>
+                                <source src="${episode.audio_file}" type="audio/mpeg">
+                            </audio>
+                        </div>
+                    ` : ''}
+                    <div class="meta">
+                        발행일: ${new Date(episode.published_at || episode.created_at).toLocaleDateString('ko-KR')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Format duration (assuming it's in seconds)
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            if (hours > 0) {
+                return `${hours}시간 ${minutes}분`;
+            }
+            return `${minutes}분 ${secs}초`;
+        }
+
+        // Modal functions
+        function openAddModal() {
+            const modal = document.getElementById('modal');
+            const form = document.getElementById('item-form');
+            const formFields = document.getElementById('form-fields');
+
+            document.getElementById('modal-title').textContent = `새 ${getTabKoreanName()} 추가`;
+
+            // Generate form fields based on current tab
+            formFields.innerHTML = generateFormFields();
+
+            modal.classList.add('active');
+            form.onsubmit = handleFormSubmit;
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function getTabKoreanName() {
+            const names = {
+                'channels': '채널',
+                'creators': '크리에이터',
+                'episodes': '에피소드'
+            };
+            return names[currentTab];
+        }
+
+        function generateFormFields() {
+            switch(currentTab) {
+                case 'channels':
+                    return `
+                        <div class="form-group">
+                            <label>채널명 *</label>
+                            <input type="text" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>설명</label>
+                            <textarea name="description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>카테고리</label>
+                            <select name="category">
+                                <option value="">선택하세요</option>
+                                <option value="EDUCATION">교육</option>
+                                <option value="ENTERTAINMENT">엔터테인먼트</option>
+                                <option value="TECHNOLOGY">기술</option>
+                                <option value="BUSINESS">비즈니스</option>
+                                <option value="HEALTH">건강</option>
+                                <option value="ARTS">예술</option>
+                                <option value="NEWS">뉴스</option>
+                                <option value="OTHER">기타</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>크리에이터 ID</label>
+                            <select name="creator">
+                                <option value="">선택하세요</option>
+                                ${creators.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                case 'creators':
+                    return `
+                        <div class="form-group">
+                            <label>이름 *</label>
+                            <input type="text" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>소개</label>
+                            <textarea name="bio"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>이메일</label>
+                            <input type="email" name="email">
+                        </div>
+                        <div class="form-group">
+                            <label>웹사이트</label>
+                            <input type="url" name="website">
+                        </div>
+                    `;
+                case 'episodes':
+                    return `
+                        <div class="form-group">
+                            <label>제목 *</label>
+                            <input type="text" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>설명</label>
+                            <textarea name="description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>채널 *</label>
+                            <select name="channel" required>
+                                <option value="">선택하세요</option>
+                                ${channels.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>재생시간 (초)</label>
+                            <input type="number" name="duration" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>오디오 파일</label>
+                            <input type="file" name="audio_file" accept="audio/*">
+                        </div>
+                    `;
+            }
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (key === 'audio_file' && value.size === 0) continue;
+                data[key] = value;
+            }
+
+            try {
+                const endpoint = `${API_BASE}/${currentTab}/`;
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('저장에 실패했습니다');
+                }
+
+                closeModal();
+                loadData();
+                alert('성공적으로 저장되었습니다!');
+            } catch (error) {
+                alert(`오류: ${error.message}`);
+            }
+        }
+
+        // Detail view functions
+        function viewChannelDetail(id) {
+            console.log('Channel detail:', id);
+            // TODO: Implement detail view
+        }
+
+        function viewCreatorDetail(id) {
+            console.log('Creator detail:', id);
+            // TODO: Implement detail view
+        }
+
+        function viewEpisodeDetail(id) {
+            console.log('Episode detail:', id);
+            // TODO: Implement detail view
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            // Also load creators and channels for form dropdowns
+            loadCreators();
+            loadChannels();
+        });
+
+        // Close modal on outside click
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
